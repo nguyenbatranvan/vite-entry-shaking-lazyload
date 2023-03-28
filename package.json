@@ -1,9 +1,8 @@
 {
   "name": "vite-entry-shaking-lazy-load",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "description": "",
   "license": "MIT",
-  "homepage": "https://github.com/Dschungelabenteuer/vite-plugin-entry-shaking/tree/main/#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/nguyenbatranvan/vite-entry-shaking-lazyload"

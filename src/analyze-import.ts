@@ -9,8 +9,8 @@ import type {EntryExports, EntryPath, ImportInput, TargetImports} from './types'
  * @param importString Import statement string.
  */
 const getImportParams = (importString: string) => {
-    const [name, alias] = importString.trim().split(' as ');
-    return {name, alias};
+  const [name, alias] = importString.trim().split(' as ');
+  return {name, alias};
 };
 
 /**
@@ -20,41 +20,41 @@ const getImportParams = (importString: string) => {
  * @param endPosition End position of the import statement.
  */
 const getImportedNamedExports = (
-    code: string,
-    startPosition: number,
-    endPosition: number,
+  code: string,
+  startPosition: number,
+  endPosition: number,
 ): { name: string[], chunk: string } => {
-    const a = {
-        name: [],
-        chunk: ""
-    }
-    if (code.slice(
-        startPosition,
-        endPosition,
-    ).match(/{([\s\S]*?)}/)) {
-        const [, importContentString] = code.slice(
-            startPosition,
-            endPosition,
-        ).match(/{([\s\S]*?)}/) ?? [];
+  const a = {
+    name: [],
+    chunk: ""
+  }
+  if (code.slice(
+    startPosition,
+    endPosition,
+  ).match(/{([\s\S]*?)}/)) {
+    const [, importContentString] = code.slice(
+      startPosition,
+      endPosition,
+    ).match(/{([\s\S]*?)}/) ?? [];
 
-        a.name = (importContentString?.split(',') ?? [])
-            .map((namedExport) => namedExport.trim());
-    } else {
-        const sliceCode = code.slice(
-            startPosition,
-            endPosition + 50,
-        )
-        let index = null;
-        if (sliceCode.match('default:')) {
-            a.chunk = "."
-            index = sliceCode.match('default:').index;
-        } else if (sliceCode.match('resolveComponent:')) {
-            index = sliceCode.match('resolveComponent:').index;
-            a.chunk = ","
-        }
-        a.name.push(sliceCode.slice(index).split('.')[1].split('\n')[0])
+    a.name = (importContentString?.split(',') ?? [])
+      .map((namedExport) => namedExport.trim());
+  } else {
+    const sliceCode = code.slice(
+      startPosition,
+      endPosition + 400,
+    )
+    let index = null;
+    if (sliceCode.match('default:')) {
+      a.chunk = "."
+      index = sliceCode.match('default:').index;
+    } else if (sliceCode.match('resolveComponent:')) {
+      index = sliceCode.match('resolveComponent:').index;
+      a.chunk = ","
     }
-    return a;
+    a.name.push(sliceCode.slice(index).split('.')[1].split('\n')[0].split(" ")[0])
+  }
+  return a;
 
 };
 
@@ -66,36 +66,36 @@ const getImportedNamedExports = (
  * @param resolver Vite's resolve function.
  */
 const getImportsMap = async (
-    entryExports: EntryExports,
-    entryPath: EntryPath,
-    imports: string[],
-    resolver: ResolveFn,
+  entryExports: EntryExports,
+  entryPath: EntryPath,
+  imports: string[],
+  resolver: ResolveFn,
 ): Promise<TargetImports> => {
-    const map: TargetImports = new Map([]);
+  const map: TargetImports = new Map([]);
 
-    await Promise.all(
-        imports.map(async (importString) => {
-            const {name, alias} = methods.getImportParams(importString);
-            const namedImport = entryExports.get(name);
-            if (namedImport) {
-                const resolvedPath = await resolver(namedImport.path, entryPath);
-                if (resolvedPath) {
-                    const {importDefault, originalName} = namedImport;
-                    map.set(resolvedPath, [
-                        ...(map.get(resolvedPath) ?? []),
-                        {name, importDefault, originalName, alias},
-                    ]);
-                }
-            } else {
-                map.set(entryPath, [
-                    ...(map.get(entryPath) ?? []),
-                    {name, importDefault: false},
-                ]);
-            }
-        }),
-    );
+  await Promise.all(
+    imports.map(async (importString) => {
+      const {name, alias} = methods.getImportParams(importString);
+      const namedImport = entryExports.get(name);
+      if (namedImport) {
+        const resolvedPath = await resolver(namedImport.path, entryPath);
+        if (resolvedPath) {
+          const {importDefault, originalName} = namedImport;
+          map.set(resolvedPath, [
+            ...(map.get(resolvedPath) ?? []),
+            {name, importDefault, originalName, alias},
+          ]);
+        }
+      } else {
+        map.set(entryPath, [
+          ...(map.get(entryPath) ?? []),
+          {name, importDefault: false},
+        ]);
+      }
+    }),
+  );
 
-    return map;
+  return map;
 };
 
 /**
@@ -103,20 +103,20 @@ const getImportsMap = async (
  * @param analyzedImport Analyzed import.
  */
 const formatImportReplacement = ({
-                                     name,
-                                     alias,
-                                     originalName,
-                                     importDefault,
+                                   name,
+                                   alias,
+                                   originalName,
+                                   importDefault,
                                  }: ImportInput) => {
-    if (importDefault) {
-        return `default as ${alias ?? originalName ?? name}`;
-    }
+  if (importDefault) {
+    return `default as ${alias ?? originalName ?? name}`;
+  }
 
-    if (originalName) {
-        return `${originalName}${alias ? ` as ${alias}` : ` as ${name}`}`;
-    }
+  if (originalName) {
+    return `${originalName}${alias ? ` as ${alias}` : ` as ${name}`}`;
+  }
 
-    return `${name}${alias ? ` as ${alias}` : ''}`;
+  return `${name}${alias ? ` as ${alias}` : ''}`;
 };
 
 /**
@@ -124,17 +124,17 @@ const formatImportReplacement = ({
  * @param imported Analyzed imported entities from target entry.
  */
 const getImportReplacement = (
-    imported: TargetImports,
+  imported: TargetImports,
 ): `import ${string}`[] => {
-    const replacement: `import ${string}`[] = [];
-    imported.forEach((importedItems, importedPath) => {
-        const path = normalizePath(importedPath);
-        const imports = importedItems
-            .map((importedItem) => methods.formatImportReplacement(importedItem));
-        replacement.push(`import { ${imports.join(', ')} } from '${path}'`);
-    });
+  const replacement: `import ${string}`[] = [];
+  imported.forEach((importedItems, importedPath) => {
+    const path = normalizePath(importedPath);
+    const imports = importedItems
+      .map((importedItem) => methods.formatImportReplacement(importedItem));
+    replacement.push(`import { ${imports.join(', ')} } from '${path}'`);
+  });
 
-    return replacement;
+  return replacement;
 };
 
 /**
@@ -148,47 +148,54 @@ const getImportReplacement = (
  * @param resolver Vite's resolve function.
  */
 const analyzeImportStatement = async (
-    src: MagicString,
-    code: string,
-    entryExports: EntryExports,
-    entryPath: EntryPath,
-    startPosition: number,
-    endPosition: number,
-    resolver: ResolveFn,
+  src: MagicString,
+  code: string,
+  entryExports: EntryExports,
+  entryPath: EntryPath,
+  startPosition: number,
+  endPosition: number,
+  resolver: ResolveFn,
 ) => {
+  try {
     const {name, chunk} = methods.getImportedNamedExports(code, startPosition, endPosition);
     const imported = await methods.getImportsMap(entryExports, entryPath, name, resolver);
     const replacement = methods.getImportReplacement(imported);
+    // @ts-ignore
     const isDefault = checkIsDefaultExport([...imported][0])
     if (!chunk) {
-        src.overwrite(
-            startPosition,
-            endPosition + 1,
-            `${replacement.join(';\n')};`,
-        );
+      src.overwrite(
+        startPosition,
+        endPosition + 1,
+        `${replacement.join(';\n')};`,
+      );
     } else {
-        if (!isDefault)
-            src.overwrite(startPosition, endPosition + 1, 'import(' + replacement[0].split("from")[1] + ')' + chunk)
-        else {
-            const codeLazy = code.slice(startPosition, endPosition + 200);
-            const findCode = codeLazy.indexOf(";")
-            src.overwrite(startPosition, startPosition + findCode, 'import(' + replacement[0].split("from")[1] + '))')
-        }
+      if (!isDefault) {
+        src.overwrite(startPosition, endPosition + 1, 'import(' + replacement[0].split("from")[1] + ')' + chunk)
+      }
+      else {
+        const codeLazy = code.slice(startPosition, endPosition + 500);
+        const findCode = codeLazy.indexOf(";")
+        src.overwrite(startPosition, startPosition + findCode, 'import(' + replacement[0].split("from")[1] + '))')
+      }
 
     }
+  }
+  catch (e) {
+  }
+
 };
 
 const checkIsDefaultExport = (key) => {
-    return key[1][0].importDefault;
+  return key[1][0].importDefault;
 }
 
 const methods = {
-    getImportParams,
-    getImportedNamedExports,
-    getImportsMap,
-    getImportReplacement,
-    formatImportReplacement,
-    analyzeImportStatement,
+  getImportParams,
+  getImportedNamedExports,
+  getImportsMap,
+  getImportReplacement,
+  formatImportReplacement,
+  analyzeImportStatement,
 };
 
 export default methods;

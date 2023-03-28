@@ -1,11 +1,11 @@
-import type {ImportSpecifier} from 'es-module-lexer';
+import type { ImportSpecifier } from 'es-module-lexer';
 import MagicString from 'magic-string';
-import {init, parse} from 'es-module-lexer';
+import { init, parse } from 'es-module-lexer';
 
-import type {Logger, ResolveFn} from 'vite';
-import type {FinalPluginOptions, PluginEntries} from './types';
+import type { Logger, ResolveFn } from 'vite';
+import type { FinalPluginOptions, PluginEntries } from './types';
 import ImportAnalyzer from './analyze-import';
-import {paint} from './logger';
+import { paint } from './logger';
 
 /**
  * Determines whether a given file should be transformed based on plugin options.
@@ -37,7 +37,7 @@ export const importsTargetEntry = async (
     try {
         return await Promise.any(
             imports.map(async (importParams) => {
-                const {n: importPath} = importParams;
+                const { n: importPath } = importParams;
                 const resolvedPath = importPath && await resolver(importPath, id);
                 if (!resolvedPath || !entries.has(resolvedPath)) throw new Error();
                 return true;
